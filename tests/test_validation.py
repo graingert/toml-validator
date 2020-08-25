@@ -3,20 +3,20 @@ from typing import Any
 from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockFixture
+from pytest_mock import MockerFixture
 from tomlkit.exceptions import TOMLKitError
 
 from toml_validator import validation
 
 
 @pytest.fixture
-def mock_tomlkit_parse(mocker: MockFixture) -> Any:
+def mock_tomlkit_parse(mocker: MockerFixture) -> Any:
     """Fixture for mocking tomlkit.parse."""
     return mocker.patch("tomlkit.parse")
 
 
 @pytest.fixture
-def mock_tomlkit_parse_exception(mocker: MockFixture) -> Any:
+def mock_tomlkit_parse_exception(mocker: MockerFixture) -> Any:
     """Fixture for mocking tomlkit.parse."""
     mock = mocker.patch("tomlkit.parse")
     mock.side_effect = TOMLKitError("|some tomlkit error|")
@@ -24,13 +24,13 @@ def mock_tomlkit_parse_exception(mocker: MockFixture) -> Any:
 
 
 @pytest.fixture
-def mock_open_valid_file(mocker: MockFixture) -> Any:
+def mock_open_valid_file(mocker: MockerFixture) -> Any:
     """Fixture for mocking build-in open for valid TOML file."""
     return mocker.patch("builtins.open", mocker.mock_open(read_data="[x]\na = 3"))
 
 
 @pytest.fixture
-def mock_open_invalid_file(mocker: MockFixture) -> Any:
+def mock_open_invalid_file(mocker: MockerFixture) -> Any:
     """Fixture for mocking build-in open for valid TOML file."""
     return mocker.patch(
         "builtins.open", mocker.mock_open(read_data="[x]\na = 3\n[x]\na = 3")
