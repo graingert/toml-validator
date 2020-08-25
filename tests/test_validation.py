@@ -8,14 +8,16 @@ from tomlkit.exceptions import TOMLKitError
 
 from toml_validator import validation
 
+from . import mark, fixture
 
-@pytest.fixture
+
+@fixture.fixture
 def mock_tomlkit_parse(mocker: MockerFixture) -> Any:
     """Fixture for mocking tomlkit.parse."""
     return mocker.patch("tomlkit.parse")
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_tomlkit_parse_exception(mocker: MockerFixture) -> Any:
     """Fixture for mocking tomlkit.parse."""
     mock = mocker.patch("tomlkit.parse")
@@ -23,13 +25,13 @@ def mock_tomlkit_parse_exception(mocker: MockerFixture) -> Any:
     return mock
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_open_valid_file(mocker: MockerFixture) -> Any:
     """Fixture for mocking build-in open for valid TOML file."""
     return mocker.patch("builtins.open", mocker.mock_open(read_data="[x]\na = 3"))
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_open_invalid_file(mocker: MockerFixture) -> Any:
     """Fixture for mocking build-in open for valid TOML file."""
     return mocker.patch(
@@ -62,13 +64,13 @@ def test_validate_toml_with_error(
     assert validation.validate_toml("file.toml") == "|some tomlkit error|"
 
 
-@pytest.mark.e2e
+@mark.e2e
 def test_validate_toml_no_error_production(mock_open_valid_file: Mock) -> None:
     """It returns no errors when valid TOML (e2e)."""
     assert validation.validate_toml("file.toml") == ""
 
 
-@pytest.mark.e2e
+@mark.e2e
 def test_validate_toml_with_error_production(mock_open_invalid_file: Mock) -> None:
     """It returns errors when invalid TOML (e2e)."""
     assert validation.validate_toml("file.toml") == 'Key "x" already exists.'

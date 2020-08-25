@@ -8,20 +8,22 @@ from pytest_mock import MockerFixture
 
 from toml_validator import __main__
 
+from . import mark, fixture
 
-@pytest.fixture
+
+@fixture.fixture
 def runner() -> click.testing.CliRunner:
     """Fixture for invoking command-line interfaces."""
     return click.testing.CliRunner()
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_validation_validate_extension(mocker: MockerFixture) -> Any:
     """Fixture for mocking validation.validate_extension."""
     return mocker.patch("toml_validator.validation.validate_extension")
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_validation_validate_toml_no_error(mocker: MockerFixture) -> Any:
     """Fixture for mocking validation.validate_toml with no errors."""
     mock = mocker.patch("toml_validator.validation.validate_toml")
@@ -29,7 +31,7 @@ def mock_validation_validate_toml_no_error(mocker: MockerFixture) -> Any:
     return mock
 
 
-@pytest.fixture
+@fixture.fixture
 def mock_validation_validate_toml_with_error(mocker: MockerFixture) -> Any:
     """Fixture for mocking validation.validate_toml with error."""
     mock = mocker.patch("toml_validator.validation.validate_toml")
@@ -77,7 +79,7 @@ def test_main_with_argument_fail(
         assert result.exit_code == 0
 
 
-@pytest.mark.e2e
+@mark.e2e
 def test_main_without_arguments_in_production_env(
     runner: click.testing.CliRunner,
 ) -> None:
