@@ -1,4 +1,6 @@
 """Nox sessions."""
+from __future__ import annotations
+
 import contextlib
 import shutil
 import sys
@@ -7,10 +9,50 @@ from pathlib import Path
 from textwrap import dedent
 from typing import cast
 from typing import Iterator
+from typing import Optional
+from typing import Sequence
+from typing import TYPE_CHECKING
+from typing import Union
 
 import nox
 from nox.sessions import Session
 
+if TYPE_CHECKING:
+    from typing_extensions import Protocol
+
+    class _NoxDecorated(Protocol):
+        def __call__(self, session: Session) -> None:
+            ...
+
+    class _NoxDecorator(Protocol):
+        def __call__(self, fn: Optional[_NoxDecorated]) -> object:
+            ...
+
+    class _NoxDecoratorFactory(Protocol):
+        def __call__(
+            self,
+            *,
+            name: Optional[str] = None,
+            python: Union[None, str, Sequence[str]] = None,
+        ) -> _NoxDecorator:
+            ...
+
+    class _NoxSession(_NoxDecorator, _NoxDecoratorFactory, Protocol):
+        def __call__(
+            self,
+            fn: Optional[_NoxDecorated] = None,
+            *,
+            name: Optional[str] = None,
+            python: Union[None, str, Sequence[str]] = None,
+        ) -> _NoxDecorator:
+            ...
+
+
+_nox_decorator_factory: _NoxDecoratorFactory = nox.session
+# TODO: upstream type missing Decorator annotation:
+_nox_decorator: _NoxDecorator = nox.session  # type: ignore
+del _nox_decorator
+nox_session = cast("_NoxSession", _nox_decorator_factory)
 
 package = "toml_validator"
 python_versions = ["3.7", "3.8"]
@@ -162,7 +204,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
         hook.write_text("\n".join(lines))
 
 
-@nox.session(name="pre-commit", python="3.8")
+@nox_session(name="pre-commit", python="3.8")
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
     args = session.posargs or ["run", "--all-files", "--show-diff-on-failure"]
@@ -185,7 +227,7 @@ def precommit(session: Session) -> None:
         activate_virtualenv_in_precommit_hooks(session)
 
 
-@nox.session(python="3.8")
+@nox_session(python="3.8")
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
     poetry = Poetry(session)
@@ -194,18 +236,18 @@ def safety(session: Session) -> None:
         session.run("safety", "check", f"--file={requirements}", "--bare")
 
 
-@nox.session(python=python_versions)
+@nox_session(python=python_versions)
 def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests", "docs/conf.py"]
     install_package(session)
     install(session, "mypy", "coverage[toml]", "pygments", "pytest", "pytest_mock")
-    session.run("mypy", *args)
+    session.run("mypy", "--show-traceback", *args)
     if not session.posargs:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
-@nox.session(python=python_versions)
+@nox_session(python=python_versions)
 def tests(session: Session) -> None:
     """Run the test suite."""
     install_package(session)
@@ -216,7 +258,7 @@ def tests(session: Session) -> None:
         session.notify("coverage")
 
 
-@nox.session
+@nox_session
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
     # Do not use session.posargs unless this is the only session.
@@ -231,7 +273,7 @@ def coverage(session: Session) -> None:
     session.run("coverage", *args)
 
 
-@nox.session(python=python_versions)
+@nox_session(python=python_versions)
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     install_package(session)
@@ -239,7 +281,7 @@ def typeguard(session: Session) -> None:
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
-@nox.session(python=python_versions)
+@nox_session(python=python_versions)
 def xdoctest(session: Session) -> None:
     """Run examples with xdoctest."""
     args = session.posargs or ["all"]
@@ -248,7 +290,7 @@ def xdoctest(session: Session) -> None:
     session.run("python", "-m", "xdoctest", package, *args)
 
 
-@nox.session(python="3.8")
+@nox_session(python="3.8")
 def docs(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]

@@ -1,14 +1,12 @@
 """Test cases for the __main__ module."""
-from typing import Any
 from unittest.mock import Mock
 
 import click.testing
-import pytest
 from pytest_mock import MockerFixture
 
+from . import fixture
+from . import mark
 from toml_validator import __main__
-
-from . import mark, fixture
 
 
 @fixture.fixture
@@ -18,13 +16,13 @@ def runner() -> click.testing.CliRunner:
 
 
 @fixture.fixture
-def mock_validation_validate_extension(mocker: MockerFixture) -> Any:
+def mock_validation_validate_extension(mocker: MockerFixture) -> object:
     """Fixture for mocking validation.validate_extension."""
     return mocker.patch("toml_validator.validation.validate_extension")
 
 
 @fixture.fixture
-def mock_validation_validate_toml_no_error(mocker: MockerFixture) -> Any:
+def mock_validation_validate_toml_no_error(mocker: MockerFixture) -> object:
     """Fixture for mocking validation.validate_toml with no errors."""
     mock = mocker.patch("toml_validator.validation.validate_toml")
     mock.return_value = ""
@@ -32,7 +30,7 @@ def mock_validation_validate_toml_no_error(mocker: MockerFixture) -> Any:
 
 
 @fixture.fixture
-def mock_validation_validate_toml_with_error(mocker: MockerFixture) -> Any:
+def mock_validation_validate_toml_with_error(mocker: MockerFixture) -> object:
     """Fixture for mocking validation.validate_toml with error."""
     mock = mocker.patch("toml_validator.validation.validate_toml")
     mock.return_value = "|some error description|"
